@@ -1,114 +1,167 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import numpy as np
+import tensorflow as tf
 from tensorflow.keras.models import load_model
-from keras.losses import MeanSquaredError
-from keras.metrics import MeanAbsoluteError
+from tensorflow.keras.losses import MeanSquaredError, MeanAbsoluteError
 from sklearn.preprocessing import MinMaxScaler
 import joblib
+import logging
+import os
+import traceback
 
-try:
-    scaler_path = "models/weather_forecast/scaler.pkl"  # Update the path if necessary
-    scaler = joblib.load(scaler_path)
-    print("Scaler loaded successfully.")
-except FileNotFoundError:
-    print("Error: Scaler file not found. Please check the path or save the scaler during training.")
-    scaler = None
-except Exception as e:
-    print(f"Error loading scaler: {e}")
-    scaler = None
+# Configure logging
+logging.basicConfig(level=logging.INFO, 
+                    format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
-# Initialize Flask app
+# Create Flask app
 app = Flask(__name__)
+CORS(app)
 
-# Load the pre-trained soil model
-soil_model_path = "models/soil_analysis/soil_tabular_model.h5"  # Update path if needed
-soil_model = load_model(soil_model_path)
+# Model and Scaler Loading with Robust Error Handling
+def load_models_and_scalers():
+    models = {}
+    scalers = {}
 
-# Load the pre-trained weather model
-weather_model_path = "models/weather_forecast/weather_model.h5"
-weather_model = load_model(weather_model_path, custom_objects={
-    "mse": MeanSquaredError(),
-    "mae": MeanAbsoluteError()
-})
+    try:
+        # Soil Analysis Model
+        soil_model_path = "models/soil_analysis/soil_tabular_model.h5"
+        if os.path.exists(soil_model_path):
+            models['soil'] = load_model(soil_model_path)
+            logger.info(f"Soil analysis model loaded successfully from {soil_model_path}")
+        else:
+            logger.error(f"Soil model not found at {soil_model_path}")
 
-# Root route to check if the server is running
+        # Soil Analysis Scaler
+        soil_scaler_path = "models/soil_analysis/scaler.pkl"
+        if os.path.exists(soil_scaler_path):
+            scalers['soil'] = joblib.load(soil_scaler_path)
+            logger.info(f"Soil scaler loaded successfully from {soil_scaler_path}")
+        else:
+            logger.error(f"Soil scaler not found at {soil_scaler_path}")
+
+        # Weather Forecast Model
+        weather_model_path = "models/weather_forecast/weather_model.h5"
+        if os.path.exists(weather_model_path):
+            models['weather'] = load_model(
+                weather_model_path, 
+                custom_objects={
+                    "mse": MeanSquaredError(),
+                    "mae": MeanAbsoluteError()
+                }
+            )
+            logger.info(f"Weather model loaded successfully from {weather_model_path}")
+        else:
+            logger.error(f"Weather model not found at {weather_model_path}")
+
+        # Weather Scaler
+        weather_scaler_path = "models/weather_forecast/scaler.pkl"
+        if os.path.exists(weather_scaler_path):
+            scalers['weather'] = joblib.load(weather_scaler_path)
+            logger.info(f"Weather scaler loaded successfully from {weather_scaler_path}")
+        else:
+            logger.error(f"Weather scaler not found at {weather_scaler_path}")
+
+    except Exception as e:
+        logger.error(f"Error loading models/scalers: {e}")
+        logger.error(traceback.format_exc())
+        models = {}
+        scalers = {}
+
+    return models, scalers
+
+# Load models and scalers at startup
+MODELS, SCALERS = load_models_and_scalers()
+
 @app.route("/", methods=["GET"])
 def index():
-    return "Welcome to the Soil Fertility Classification and Weather Prediction API!"
+    """Health check endpoint"""
+    return jsonify({
+        "status": "healthy",
+        "models_loaded": {
+            "soil_analysis": "soil" in MODELS,
+            "weather_prediction": "weather" in MODELS
+        }
+    }), 200
 
-# Classification route for soil fertility
-@app.route("/classify", methods=["POST"])
-def classify():
-    feature_names = ["N", "P", "K", "pH", "EC", "OC", "S", "Zn", "Fe", "Cu", "Mn", "B"]
-
+@app.route("/soil-analysis", methods=["POST"])
+def soil_analysis():
+    """Soil fertility analysis endpoint"""
     try:
-        # Parse input data
-        data = request.get_json()
-        if not isinstance(data, list) or len(data) != len(feature_names):
-            return jsonify({
-                "error": f"Input must be an array of {len(feature_names)} values: {feature_names}"
-            }), 400
+        # Validate model is loaded
+        if 'soil' not in MODELS or 'soil' not in SCALERS:
+            return jsonify({"error": "Soil analysis model not loaded"}), 500
 
-        # Convert data to NumPy array
-        features = np.array([float(val) for val in data]).reshape(1, -1)
+        # Extract features from request
+        # Assuming JSON input with soil parameters
+        data = request.json
+        if not data:
+            return jsonify({"error": "No soil data provided"}), 400
 
-        # Predict using the soil model
-        prediction = soil_model.predict(features)
-        classification = "High Fertility" if prediction[0][0] > 0.5 else "Low Fertility"
+        # Required feature names
+        feature_names = ["N", "P", "K", "pH", "EC", "OC", "S", "Zn", "Fe", "Cu", "Mn", "B"]
+        
+        # Validate input features
+        if not all(feature in data for feature in feature_names):
+            return jsonify({"error": "Missing required soil features"}), 400
+
+        # Prepare features
+        features = [data[feature] for feature in feature_names]
+        features_array = np.array([features])
+
+        # Scale features
+        scaled_features = SCALERS['soil'].transform(features_array)
+
+        # Make prediction
+        prediction = MODELS['soil'].predict(scaled_features)
+        
+        # Convert prediction to interpretable result
+        fertility_status = "High" if prediction[0][0] > 0.5 else "Low"
+        confidence = float(prediction[0][0] * 100)
 
         return jsonify({
-            "classification": classification
-        })
+            "fertility_status": fertility_status,
+            "confidence": confidence
+        }), 200
 
-    except ValueError:
-        return jsonify({"error": "All values in the input array must be numbers."}), 400
     except Exception as e:
-        return jsonify({"error": f"Error during classification: {str(e)}"}), 500
+        logger.error(f"Soil analysis error: {e}")
+        logger.error(traceback.format_exc())
+        return jsonify({"error": "Internal server error during soil analysis"}), 500
 
-# Weather prediction route
-@app.route("/predict_weather", methods=["POST"])
-def predict_weather():
-    """
-    Predict future weather conditions based on the provided 10-timestep data.
-    """
+@app.route("/weather-prediction", methods=["GET"])
+def weather_prediction():
+    """Weather prediction endpoint"""
     try:
-        # Get JSON input
-        data = request.get_json()
+        # Validate model is loaded
+        if 'weather' not in MODELS or 'weather' not in SCALERS:
+            return jsonify({"error": "Weather prediction model not loaded"}), 500
 
-        # Validate input format
-        if not isinstance(data, list):
-            return jsonify({"error": "Input must be a list of 10 rows of weather data."}), 400
+        # Get location from query parameters
+        location = request.args.get('location')
+        if not location:
+            return jsonify({"error": "Location is required"}), 400
 
-        if len(data) != 10:
-            return jsonify({"error": "Input must contain exactly 10 rows of weather data."}), 400
+        # In a real-world scenario, you'd fetch location-specific weather data
+        # For now, using a placeholder prediction approach
+        # You'd replace this with actual feature extraction for your specific model
+        sample_features = np.random.rand(1, 10)  # Replace with actual feature extraction
+        scaled_features = SCALERS['weather'].transform(sample_features)
 
-        for row in data:
-            if not isinstance(row, list) or len(row) != 3:
-                return jsonify({"error": "Each row must be a list with 3 numeric values: [Temperature, Humidity, WindSpeed]."}), 400
-            if not all(isinstance(val, (int, float)) for val in row):
-                return jsonify({"error": "All values in the input array must be numbers."}), 400
+        # Make prediction
+        prediction = MODELS['weather'].predict(scaled_features)
 
-        # Convert data to numpy array
-        input_data = np.array(data)
-        print(f"Input data shape before reshaping: {input_data.shape}")  # Debugging log
-
-        # Reshape to (1, 10, 3) for LSTM input
-        input_data = input_data.reshape(1, 10, 3)  # Ensure correct shape for model
-
-        # Predict using the loaded model
-        normalized_prediction = weather_model.predict(input_data)[0][0]  # Extract single value
-
-        # Reverse normalization to get actual temperature
-        predicted_temperature = scaler.inverse_transform([[normalized_prediction, 0, 0]])[0][0]
-
-        # Return response
-        return jsonify({"predicted_temperature": float(predicted_temperature)})
+        return jsonify({
+            "temperature": float(prediction[0][0]),
+            "precipitation": float(prediction[0][1]),
+            "humidity": float(prediction[0][2])
+        }), 200
 
     except Exception as e:
-        # Catch and return any unexpected errors
-        return jsonify({"error": f"An error occurred: {str(e)}"}), 500
-    except ValueError:
-        return jsonify({"error": "All values in the input array must be numbers."}), 400
+        logger.error(f"Weather prediction error: {e}")
+        logger.error(traceback.format_exc())
+        return jsonify({"error": "Internal server error during weather prediction"}), 500
 
 if __name__ == "__main__":
     app.run(debug=True)
