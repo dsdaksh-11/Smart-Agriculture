@@ -139,10 +139,18 @@ def weather_prediction():
             return jsonify({"error": "Weather prediction model not loaded"}), 500
 
         # Extract features from request
-        data = request.json.get("data", None)
+        data = request.json
+        if isinstance(data, dict):  # If `data` is a dictionary, extract "data"
+            data = data.get("data", None)
+        elif isinstance(data, list):  # If it's a list, treat it as raw input
+            pass
+        else:
+            return jsonify({"error": "Invalid input format. Expected a JSON array or object."}), 400
+
+        # Validate the input size
         if not data or not isinstance(data, list) or len(data) != 4:
             return jsonify({
-                "error": "Invalid input. Expected a JSON array with exactly 4 feature values."
+                "error": f"Invalid input size. Expected a JSON array with exactly 4 values, but got {len(data)} values."
             }), 400
 
         # Convert to numpy array and reshape to (1, 1, 4)
