@@ -16,9 +16,11 @@ data = pd.read_csv("data/weather/weather_data.csv")
 if data.isnull().sum().any():
     data = data.dropna()  # Drop rows with missing values, or use imputation methods
 
-# Scaling the data for LSTM (Temperature, Humidity, WindSpeed, and Visibility)
+# Scaling the data for LSTM (Temperature, Humidity, WindSpeed)
 scaler = MinMaxScaler(feature_range=(0, 1))
-scaled_data = scaler.fit_transform(data[['Temperature', 'Humidity', 'WindSpeed', 'Visibility']])
+
+# Scale only the relevant columns (Temperature, Humidity, WindSpeed)
+scaled_data = scaler.fit_transform(data[['Temperature', 'Humidity', 'WindSpeed']])
 
 # Step 3: Prepare the dataset for LSTM
 # Create dataset with time steps (look-back)
@@ -50,9 +52,13 @@ history = model.fit(X_train, y_train, epochs=20, batch_size=32, validation_data=
 # Step 7: Evaluate the model and make predictions
 predictions = model.predict(X_test)
 
-# Inverse transform predictions to original scale
-predictions_rescaled = scaler.inverse_transform(np.concatenate((predictions, np.zeros((predictions.shape[0], 3))), axis=1))[:, 0]
-y_test_actual = scaler.inverse_transform(np.concatenate((y_test.reshape(-1, 1), np.zeros((y_test.shape[0], 3))), axis=1))[:, 0]
+# Inverse transform predictions to the original scale
+# Concatenate predictions with zeros for the non-predicted columns (Humidity, WindSpeed)
+# We add zeros only for the columns that were not predicted, i.e., Humidity and WindSpeed.
+predictions_rescaled = scaler.inverse_transform(np.concatenate((predictions, np.zeros((predictions.shape[0], 2))), axis=1))[:, 0]
+
+# Inverse transform actual test data to the original scale
+y_test_actual = scaler.inverse_transform(np.concatenate((y_test.reshape(-1, 1), np.zeros((y_test.shape[0], 2))), axis=1))[:, 0]
 
 # Step 8: Plot the results
 plt.figure(figsize=(12,6))
