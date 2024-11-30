@@ -3,7 +3,8 @@ from keras.models import Sequential
 from keras.layers import LSTM, Dense
 from sklearn.model_selection import train_test_split
 import sys
-sys.path.append("E:/Smart-agriculture-ai")
+
+sys.path.append("D:/Code/Smart-Agriculture/smart-agriculture-ai") # SYSTEM FILE PATH NECESSARY
 from scripts.preprocess_weather import load_data, create_sequences
 
 # Build the LSTM model

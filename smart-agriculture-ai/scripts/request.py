@@ -32,7 +32,7 @@ def test_weather_prediction():
         [28.5, 68.5, 13.2, 4.9]
     ]
     try:
-        weather_response = requests.post(f"{BASE_URL}/predict_weather", json=weather_data)
+        weather_response = requests.post(f"{BASE_URL}/weather-prediction", json=weather_data)
         weather_response.raise_for_status()  # Raise HTTPError for bad responses
         print("\nWeather Prediction Response:")
         print(weather_response.json())

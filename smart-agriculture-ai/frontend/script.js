@@ -43,23 +43,30 @@ function setupSoilAnalysis() {
     const soilAnalysisError = document.getElementById('soil-analysis-error');
     const fertilityStatus = document.getElementById('fertility-status');
 
+    // Feature names for the soil parameters (to map the inputs correctly)
+    const featureNames = ["N", "P", "K", "pH", "EC", "OC", "S", "Zn", "Fe", "Cu", "Mn", "B"];
+
     submitButton.addEventListener('click', async () => {
         // Reset previous state
         soilAnalysisError.textContent = '';
         soilAnalysisError.classList.add('hidden');
         soilAnalysisResult.classList.add('hidden');
 
-        // Collect input values
-        const inputValues = Array.from(soilInputs).map(input => {
+        // Collect input values in the correct structure
+        const inputValues = {};
+        
+        soilInputs.forEach((input, index) => {
             const value = parseFloat(input.value);
             if (isNaN(value)) {
-                throw new Error(`Invalid input for ${input.name}`);
+                soilAnalysisError.textContent = `Invalid input for ${featureNames[index]}`;
+                soilAnalysisError.classList.remove('hidden');
+                return;
             }
-            return value;
+            inputValues[featureNames[index]] = value;
         });
 
-        // Validate inputs
-        if (inputValues.length !== 12) {
+        // Validate inputs (make sure all fields are filled)
+        if (Object.keys(inputValues).length !== 12) {
             soilAnalysisError.textContent = 'Please fill in all soil parameters.';
             soilAnalysisError.classList.remove('hidden');
             return;
@@ -83,10 +90,13 @@ function setupSoilAnalysis() {
             }
 
             const data = await response.json();
+            console.log(data); // LOG KRKE ERROR FIX KRLIYA KRO (CRYING EMOJI)
             
-            // Display results
-            fertilityStatus.textContent = `Soil Fertility: ${data.classification}`;
-            
+            if (data && data.fertility_status) {
+                fertilityStatus.textContent = `Soil Fertility: ${data.fertility_status}`;
+            } else {
+                fertilityStatus.textContent = 'Soil Fertility: Classification data is missing';
+            }
             soilAnalysisResult.classList.remove('hidden');
         } catch (error) {
             soilAnalysisError.textContent = error.message || 'An unexpected error occurred';
