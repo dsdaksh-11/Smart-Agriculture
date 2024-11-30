@@ -69,7 +69,7 @@ function setupSoilAnalysis() {
         soilAnalysisLoader.classList.remove('hidden');
 
         try {
-            const response = await fetch(`${API_BASE_URL}/classify`, {
+            const response = await fetch(`${API_BASE_URL}/soil-analysis`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
