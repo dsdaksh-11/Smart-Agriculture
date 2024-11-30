@@ -13,10 +13,10 @@ import traceback
 # Configure logging
 logging.basicConfig(level=logging.INFO, 
                     format='%(asctime)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)  # Fixing logger name
 
 # Create Flask app
-app = Flask(__name__)
+app = Flask(__name__)  # Fixing app initialization
 CORS(app)
 
 # Model and Scaler Loading with Robust Error Handling
@@ -94,7 +94,6 @@ def soil_analysis():
             return jsonify({"error": "Soil analysis model not loaded"}), 500
 
         # Extract features from request
-        # Assuming JSON input with soil parameters
         data = request.json
         if not data:
             return jsonify({"error": "No soil data provided"}), 400
@@ -130,30 +129,45 @@ def soil_analysis():
         logger.error(traceback.format_exc())
         return jsonify({"error": "Internal server error during soil analysis"}), 500
 
-@app.route("/weather-prediction", methods=["POST"])  # Changed to POST
+@app.route("/weather-prediction", methods=["POST"])
 def weather_prediction():
     """Weather prediction endpoint"""
     try:
         # Validate model is loaded
         if 'weather' not in MODELS or 'weather' not in SCALERS:
-            return jsonify({"error": "Weather prediction model not loaded"}), 500
+            return jsonify({
+                "error": "Weather prediction model or scaler not loaded. Please ensure the weather model and scaler files are available."
+            }), 500
 
         # Extract features from request
         data = request.json
-        if not data:
-            return jsonify({"error": "No data provided"}), 400
+        if isinstance(data, dict):  # If data is a dictionary, extract "data"
+            data = data.get("data", None)
+        elif isinstance(data, list):  # If it's a list, treat it as raw input
+            pass
+        else:
+            return jsonify({"error": "Invalid input format. Expected a JSON array or object."}), 400
 
-        # In a real-world scenario, you'd fetch location-specific weather data
-        sample_features = np.array(data)  # Example: data should contain feature values
-        scaled_features = SCALERS['weather'].transform(sample_features)
+        # Validate the input size (check for 3 values)
+        if not data or len(data) != 3:
+            return jsonify({
+                "error": f"Invalid input size. Expected a JSON array with exactly 3 values, but got {len(data)} values."
+            }), 400
+
+        # Convert to numpy array and reshape to (1, 1, 3)
+        input_array = np.array(data).reshape(1, 1, 3)
+
+        # Normalize input using the scaler (Ensure correct input format)
+        scaled_features = SCALERS['weather'].transform(input_array.reshape(-1, 3))
+        scaled_features = scaled_features.reshape(1, 1, 3)
 
         # Make prediction
         prediction = MODELS['weather'].predict(scaled_features)
 
+        # To avoid the ValueError, do not attempt to inverse transform directly if the feature count is mismatched
+        # Instead, just return the prediction result
         return jsonify({
-            "temperature": float(prediction[0][0]),
-            "precipitation": float(prediction[0][1]),
-            "humidity": float(prediction[0][2])
+            "predicted_temperature": float(prediction[0][0])
         }), 200
 
     except Exception as e:
@@ -161,5 +175,6 @@ def weather_prediction():
         logger.error(traceback.format_exc())
         return jsonify({"error": "Internal server error during weather prediction"}), 500
 
-if __name__ == "__main__":
+
+if __name__ == "__main__":  # Fixing app entry point
     app.run(debug=True)
