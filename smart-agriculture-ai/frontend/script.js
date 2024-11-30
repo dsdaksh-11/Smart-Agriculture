@@ -123,33 +123,40 @@ function setupWeatherPrediction() {
         weatherError.classList.add('hidden');
         weatherResult.classList.add('hidden');
 
-        // Collect input values
+        // Collect input values 
         const inputValues = [];
-        for (let i = 0; i < 10; i++) {
-            const rowValues = [];
-            for (let j = 0; j < 3; j++) {
-                const inputIndex = i * 3 + j;
-                
-                // Check if the input element exists
-                const inputElement = weatherInputs[inputIndex];
-                if (!inputElement) {
-                    weatherError.textContent = `Input field missing at Row ${i + 1}, Column ${j + 1}`;
-                    weatherError.classList.remove('hidden');
-                    return;
-                }
+        let isValid = true;
 
-                const value = parseFloat(inputElement.value);
-                
-                if (isNaN(value)) {
-                    weatherError.textContent = `Please fill in all weather input fields (Row ${i+1}, Column ${j+1})`;
-                    weatherError.classList.remove('hidden');
-                    return;
-                }
-                
-                rowValues.push(value);
-            }
-            inputValues.push(rowValues);
+        if (weatherInputs.length !== 3) {
+            weatherError.textContent = `Expected 3 input fields, but found ${weatherInputs.length}.`;
+            weatherError.classList.remove('hidden');
+            console.error('Incorrect number of input fields detected.');
+            return;
         }
+
+        // Collect values for a single row
+        const rowValues = [];
+        for (let i = 0; i < weatherInputs.length; i++) {
+            const value = parseFloat(weatherInputs[i].value);
+
+            if (isNaN(value)) {
+                weatherError.textContent = `Invalid input at Column ${i + 1}. Please enter a valid number.`;
+                weatherError.classList.remove('hidden');
+                isValid = false;
+                break;
+            }
+            rowValues.push(value);
+        }
+
+        if (!isValid) {
+            console.log('Validation failed. Stopping execution.');
+            return;
+        }
+
+        // Replicate the row 10 times to match the (1, 10, 3) shape
+        const inputData = Array(10).fill().map(() => rowValues);
+
+        console.log('Prepared Input:', inputData);
 
         // Show loader
         weatherLoader.classList.remove('hidden');
@@ -160,7 +167,7 @@ function setupWeatherPrediction() {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(inputValues)
+                body: JSON.stringify(inputData), // Send 10 rows of 3 values
             });
 
             if (!response.ok) {
@@ -169,13 +176,12 @@ function setupWeatherPrediction() {
             }
 
             const data = await response.json();
-            
+
             // Display results
             temperatureDisplay.textContent = `Predicted Temperature: ${data.predicted_temperature.toFixed(2)}°C`;
-            
             weatherResult.classList.remove('hidden');
         } catch (error) {
-            weatherError.textContent = error.message || 'An unexpected error occurred';
+            weatherError.textContent = error.message || 'An unexpected error occurred.';
             weatherError.classList.remove('hidden');
             console.error('Weather prediction error:', error);
         } finally {
