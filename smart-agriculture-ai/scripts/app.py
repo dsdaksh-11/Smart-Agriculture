@@ -130,36 +130,41 @@ def soil_analysis():
         logger.error(traceback.format_exc())
         return jsonify({"error": "Internal server error during soil analysis"}), 500
 
-@app.route("/weather-prediction", methods=["POST"])  # Changed to POST
+@app.route("/weather-prediction", methods=["POST"])
 def weather_prediction():
-    """Weather prediction endpoint"""
+    """Weather prediction endpoint (1,1,4)"""
     try:
         # Validate model is loaded
         if 'weather' not in MODELS or 'weather' not in SCALERS:
             return jsonify({"error": "Weather prediction model not loaded"}), 500
 
         # Extract features from request
-        data = request.json
-        if not data:
-            return jsonify({"error": "No data provided"}), 400
+        data = request.json.get("data", None)
+        if not data or not isinstance(data, list) or len(data) != 4:
+            return jsonify({
+                "error": "Invalid input. Expected a JSON array with exactly 4 feature values."
+            }), 400
 
-        # In a real-world scenario, you'd fetch location-specific weather data
-        sample_features = np.array(data)  # Example: data should contain feature values
-        scaled_features = SCALERS['weather'].transform(sample_features)
+        # Convert to numpy array and reshape to (1, 1, 4)
+        input_array = np.array(data).reshape(1, 1, 4)
+
+        # Normalize input using the scaler
+        scaled_features = SCALERS['weather'].transform(input_array.reshape(-1, 4))
+        scaled_features = scaled_features.reshape(1, 1, 4)
 
         # Make prediction
         prediction = MODELS['weather'].predict(scaled_features)
 
+        # Return the predicted temperature
         return jsonify({
-            "temperature": float(prediction[0][0]),
-            "precipitation": float(prediction[0][1]),
-            "humidity": float(prediction[0][2])
+            "predicted_temperature": float(prediction[0][0])
         }), 200
 
     except Exception as e:
         logger.error(f"Weather prediction error: {e}")
         logger.error(traceback.format_exc())
         return jsonify({"error": "Internal server error during weather prediction"}), 500
+
 
 if __name__ == "__main__":
     app.run(debug=True)
