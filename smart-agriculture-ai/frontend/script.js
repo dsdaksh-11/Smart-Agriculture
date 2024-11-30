@@ -134,8 +134,7 @@ function setupWeatherPrediction() {
             return;
         }
 
-        // Collect values for a single row
-        const rowValues = [];
+        // Collect values for 3 input fields
         for (let i = 0; i < weatherInputs.length; i++) {
             const value = parseFloat(weatherInputs[i].value);
 
@@ -145,7 +144,7 @@ function setupWeatherPrediction() {
                 isValid = false;
                 break;
             }
-            rowValues.push(value);
+            inputValues.push(value);
         }
 
         if (!isValid) {
@@ -153,10 +152,7 @@ function setupWeatherPrediction() {
             return;
         }
 
-        // Replicate the row 10 times to match the (1, 10, 3) shape
-        const inputData = Array(10).fill().map(() => rowValues);
-
-        console.log('Prepared Input:', inputData);
+        console.log('Prepared Input:', inputValues);
 
         // Show loader
         weatherLoader.classList.remove('hidden');
@@ -167,7 +163,7 @@ function setupWeatherPrediction() {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(inputData), // Send 10 rows of 3 values
+                body: JSON.stringify(inputValues), // Send 3 values (not 4)
             });
 
             if (!response.ok) {
