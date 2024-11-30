@@ -77,11 +77,55 @@
                             <input type="number" class="weather-input-field" placeholder="Humidity 1">
                             <input type="number" class="weather-input-field" placeholder="Wind Speed 1">
                         </div>
-                        <!-- Repeat 9 more times -->
+
                         <div class="weather-input-row">
                             <input type="number" class="weather-input-field" placeholder="Temp 2">
                             <input type="number" class="weather-input-field" placeholder="Humidity 2">
                             <input type="number" class="weather-input-field" placeholder="Wind Speed 2">
+                        </div>
+
+                        <div class="weather-input-row">
+                            <input type="number" class="weather-input-field" placeholder="Temp 3">
+                            <input type="number" class="weather-input-field" placeholder="Humidity 3">
+                            <input type="number" class="weather-input-field" placeholder="Wind Speed 3">
+                        </div>
+
+                        <div class="weather-input-row">
+                            <input type="number" class="weather-input-field" placeholder="Temp 4">
+                            <input type="number" class="weather-input-field" placeholder="Humidity 4">
+                            <input type="number" class="weather-input-field" placeholder="Wind Speed 4">
+                        </div>
+
+                        <div class="weather-input-row">
+                            <input type="number" class="weather-input-field" placeholder="Temp 5">
+                            <input type="number" class="weather-input-field" placeholder="Humidity 5">
+                            <input type="number" class="weather-input-field" placeholder="Wind Speed 5">
+                        </div>
+
+                        <div class="weather-input-row">
+                            <input type="number" class="weather-input-field" placeholder="Temp 6">
+                            <input type="number" class="weather-input-field" placeholder="Humidity 6">
+                            <input type="number" class="weather-input-field" placeholder="Wind Speed 6">
+                        </div>
+                        <div class="weather-input-row">
+                            <input type="number" class="weather-input-field" placeholder="Temp 7">
+                            <input type="number" class="weather-input-field" placeholder="Humidity 7">
+                            <input type="number" class="weather-input-field" placeholder="Wind Speed 7">
+                        </div>
+                        <div class="weather-input-row">
+                            <input type="number" class="weather-input-field" placeholder="Temp 8">
+                            <input type="number" class="weather-input-field" placeholder="Humidity 8">
+                            <input type="number" class="weather-input-field" placeholder="Wind Speed 8">
+                        </div>
+                        <div class="weather-input-row">
+                            <input type="number" class="weather-input-field" placeholder="Temp 9">
+                            <input type="number" class="weather-input-field" placeholder="Humidity 9">
+                            <input type="number" class="weather-input-field" placeholder="Wind Speed 9">
+                        </div>
+                        <div class="weather-input-row">
+                            <input type="number" class="weather-input-field" placeholder="Temp 10">
+                            <input type="number" class="weather-input-field" placeholder="Humidity 10">
+                            <input type="number" class="weather-input-field" placeholder="Wind Speed 10">
                         </div>
                         <!-- ... and so on for 10 rows total -->
                     </div>
@@ -98,6 +142,37 @@
             </div>
         </main>
     </div>
+
+    <script>
+         // Function to check API status
+        async function checkAPIStatus() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'text/plain'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('API connection failed');
+                }
+
+                const message = await response.text();
+                apiStatusElement.textContent = message;
+                apiStatusElement.classList.remove('hidden');
+                apiStatusElement.classList.add('api-status-success');
+            } catch (error) {
+                apiStatusElement.textContent = `Error: ${error.message}. Ensure the Flask server is running.`;
+                apiStatusElement.classList.remove('hidden');
+                apiStatusElement.classList.add('api-status-error');
+                console.error('API Status Check Error:', error);
+            }
+        }
+
+        // Check API status when the page loads
+        document.addEventListener('DOMContentLoaded', checkAPIStatus);
+    </script>
 
     <script src="script.js"></script>
 </body>
