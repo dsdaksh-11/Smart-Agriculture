@@ -44,14 +44,14 @@ def create_sequences(data, sequence_length=10):
 # Main execution block
 if __name__ == "__main__":
     # Example usage
-    file_path = 'data/weather/weather_data.csv'  # Adjust path as needed
+    file_path = 'smart-agriculture-ai/data/weather/weather_data.csv'  # Adjust path as needed
     
     try:
         # Load and preprocess data
         data, scaler = load_data(file_path)
         
         # Save the scaler for later use
-        joblib.dump(scaler, "models/weather_forecast/scaler.pkl")
+        joblib.dump(scaler, "smart-agriculture-ai/models/weather_forecast/scaler.pkl")
         print("Scaler saved successfully.")
 
         # Create sequences
