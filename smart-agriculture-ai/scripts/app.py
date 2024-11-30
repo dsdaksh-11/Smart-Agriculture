@@ -130,7 +130,7 @@ def soil_analysis():
         logger.error(traceback.format_exc())
         return jsonify({"error": "Internal server error during soil analysis"}), 500
 
-@app.route("/weather-prediction", methods=["GET"])
+@app.route("/weather-prediction", methods=["POST"])  # Changed to POST
 def weather_prediction():
     """Weather prediction endpoint"""
     try:
@@ -138,15 +138,13 @@ def weather_prediction():
         if 'weather' not in MODELS or 'weather' not in SCALERS:
             return jsonify({"error": "Weather prediction model not loaded"}), 500
 
-        # Get location from query parameters
-        location = request.args.get('location')
-        if not location:
-            return jsonify({"error": "Location is required"}), 400
+        # Extract features from request
+        data = request.json
+        if not data:
+            return jsonify({"error": "No data provided"}), 400
 
         # In a real-world scenario, you'd fetch location-specific weather data
-        # For now, using a placeholder prediction approach
-        # You'd replace this with actual feature extraction for your specific model
-        sample_features = np.random.rand(1, 10)  # Replace with actual feature extraction
+        sample_features = np.array(data)  # Example: data should contain feature values
         scaled_features = SCALERS['weather'].transform(sample_features)
 
         # Make prediction

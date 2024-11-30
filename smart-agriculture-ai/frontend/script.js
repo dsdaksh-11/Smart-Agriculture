@@ -119,7 +119,16 @@ function setupWeatherPrediction() {
             const rowValues = [];
             for (let j = 0; j < 3; j++) {
                 const inputIndex = i * 3 + j;
-                const value = parseFloat(weatherInputs[inputIndex].value);
+                
+                // Check if the input element exists
+                const inputElement = weatherInputs[inputIndex];
+                if (!inputElement) {
+                    weatherError.textContent = `Input field missing at Row ${i + 1}, Column ${j + 1}`;
+                    weatherError.classList.remove('hidden');
+                    return;
+                }
+
+                const value = parseFloat(inputElement.value);
                 
                 if (isNaN(value)) {
                     weatherError.textContent = `Please fill in all weather input fields (Row ${i+1}, Column ${j+1})`;
@@ -136,7 +145,7 @@ function setupWeatherPrediction() {
         weatherLoader.classList.remove('hidden');
 
         try {
-            const response = await fetch(`${API_BASE_URL}/predict_weather`, {
+            const response = await fetch(`${API_BASE_URL}/weather-prediction`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
