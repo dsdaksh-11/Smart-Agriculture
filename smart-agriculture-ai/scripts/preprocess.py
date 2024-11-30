@@ -4,7 +4,7 @@ from sklearn.preprocessing import StandardScaler
 import joblib  # For saving and loading scaler objects
 
 # Load dataset
-csv_path = "smart-agriculture-ai/data/soil/soil_data.csv"
+csv_path = "data/soil/soil_data.csv"
 data = pd.read_csv(csv_path)
 
 # Separate features and target
@@ -20,8 +20,8 @@ X_train_scaled = scaler.fit_transform(X_train)
 X_test_scaled = scaler.transform(X_test)
 
 # Save preprocessed data and scaler
-pd.DataFrame(X_train_scaled, columns=X.columns).to_csv("smart-agriculture-ai/data/soil/X_train_scaled.csv", index=False)
-pd.DataFrame(X_test_scaled, columns=X.columns).to_csv("smart-agriculture-ai/data/soil/X_test_scaled.csv", index=False)
-pd.DataFrame(y_train).to_csv("smart-agriculture-ai/data/soil/y_train.csv", index=False)
-pd.DataFrame(y_test).to_csv("smart-agriculture-ai/data/soil/y_test.csv", index=False)
-joblib.dump(scaler, "smart-agriculture-ai/models/soil_analysis/scaler.pkl")
+pd.DataFrame(X_train_scaled, columns=X.columns).to_csv("data/soil/X_train_scaled.csv", index=False)
+pd.DataFrame(X_test_scaled, columns=X.columns).to_csv("data/soil/X_test_scaled.csv", index=False)
+pd.DataFrame(y_train).to_csv("data/soil/y_train.csv", index=False)
+pd.DataFrame(y_test).to_csv("data/soil/y_test.csv", index=False)
+joblib.dump(scaler, "models/soil_analysis/scaler.pkl")
