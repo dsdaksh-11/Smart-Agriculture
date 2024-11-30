@@ -1,0 +1,1 @@
+{"input_shape": [10, 4], "scaler_min": [0, 0, 0, 0], "scaler_max": [50, 100, 30, 20], "sequence_length": 10, "epochs": 20}

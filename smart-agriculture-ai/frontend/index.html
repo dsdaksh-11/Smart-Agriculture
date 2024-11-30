@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Agriculture Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app">
+        <nav>
+            <div class="nav-content">
+                <h1 id="home-title">Smart Agriculture</h1>
+                <div class="nav-buttons">
+                    <button id="soil-analysis-nav">Soil Analysis</button>
+                    <button id="weather-prediction-nav">Weather Prediction</button>
+                </div>
+            </div>
+        </nav>
+
+        <main id="content-container">
+            <div id="dashboard">
+                <h1>Smart Agriculture Dashboard</h1>
+                <div class="dashboard-grid">
+                    <div class="dashboard-item" data-page="soil-analysis">
+                        <h2>Soil Analysis</h2>
+                        <button>Go to Soil Analysis</button>
+                    </div>
+                    <div class="dashboard-item" data-page="weather-prediction">
+                        <h2>Weather Prediction</h2>
+                        <button>Go to Weather Prediction</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="soil-analysis" class="page hidden">
+                <h2>Soil Fertility Analysis</h2>
+                <div id="soil-analysis-error" class="error hidden"></div>
+                
+                <div class="soil-inputs-grid">
+                    <input type="number" name="N" class="soil-input" placeholder="Nitrogen (N)">
+                    <input type="number" name="P" class="soil-input" placeholder="Phosphorus (P)">
+                    <input type="number" name="K" class="soil-input" placeholder="Potassium (K)">
+                    <input type="number" name="pH" class="soil-input" placeholder="pH">
+                    <input type="number" name="EC" class="soil-input" placeholder="Electrical Conductivity (EC)">
+                    <input type="number" name="OC" class="soil-input" placeholder="Organic Carbon (OC)">
+                    <input type="number" name="S" class="soil-input" placeholder="Sulfur (S)">
+                    <input type="number" name="Zn" class="soil-input" placeholder="Zinc (Zn)">
+                    <input type="number" name="Fe" class="soil-input" placeholder="Iron (Fe)">
+                    <input type="number" name="Cu" class="soil-input" placeholder="Copper (Cu)">
+                    <input type="number" name="Mn" class="soil-input" placeholder="Manganese (Mn)">
+                    <input type="number" name="B" class="soil-input" placeholder="Boron (B)">
+                </div>
+                
+                <button id="soil-submit-btn">Analyze Soil</button>
+                
+                <div id="soil-analysis-loader" class="loader hidden"></div>
+                
+                <div id="soil-analysis-result" class="result hidden">
+                    <h3>Analysis Result</h3>
+                    <p id="fertility-status"></p>
+                </div>
+            </div>
+
+            <div id="weather-prediction" class="page hidden">
+                <h2>Weather Prediction</h2>
+                <div id="weather-error" class="error hidden"></div>
+                
+                <div class="weather-inputs-grid">
+                    <!-- 10 rows of weather inputs (Temperature, Humidity, Wind Speed) -->
+                    <h3>Enter 10 rows of weather data (Temperature, Humidity, Wind Speed)</h3>
+                    <!-- This will create 30 input fields (10 rows x 3 columns) -->
+                    <div class="weather-input-rows">
+                        <!-- This will be dynamically generated or pre-filled -->
+                        <div class="weather-input-row">
+                            <input type="number" class="weather-input-field" placeholder="Temp 1">
+                            <input type="number" class="weather-input-field" placeholder="Humidity 1">
+                            <input type="number" class="weather-input-field" placeholder="Wind Speed 1">
+                        </div>
+                        <!-- Repeat 9 more times -->
+                        <div class="weather-input-row">
+                            <input type="number" class="weather-input-field" placeholder="Temp 2">
+                            <input type="number" class="weather-input-field" placeholder="Humidity 2">
+                            <input type="number" class="weather-input-field" placeholder="Wind Speed 2">
+                        </div>
+                        <!-- ... and so on for 10 rows total -->
+                    </div>
+                </div>
+                
+                <button id="get-weather-prediction">Predict Weather</button>
+                
+                <div id="weather-loader" class="loader hidden"></div>
+                
+                <div id="weather-result" class="result hidden">
+                    <h3>Weather Forecast</h3>
+                    <p id="weather-temperature"></p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
