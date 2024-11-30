@@ -13,10 +13,10 @@ import traceback
 # Configure logging
 logging.basicConfig(level=logging.INFO, 
                     format='%(asctime)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)  # Fixing logger name
 
 # Create Flask app
-app = Flask(__name__)
+app = Flask(__name__)  # Fixing app initialization
 CORS(app)
 
 # Model and Scaler Loading with Robust Error Handling
@@ -94,7 +94,6 @@ def soil_analysis():
             return jsonify({"error": "Soil analysis model not loaded"}), 500
 
         # Extract features from request
-        # Assuming JSON input with soil parameters
         data = request.json
         if not data:
             return jsonify({"error": "No soil data provided"}), 400
@@ -132,15 +131,17 @@ def soil_analysis():
 
 @app.route("/weather-prediction", methods=["POST"])
 def weather_prediction():
-    """Weather prediction endpoint (1,1,4)"""
+    """Weather prediction endpoint"""
     try:
         # Validate model is loaded
         if 'weather' not in MODELS or 'weather' not in SCALERS:
-            return jsonify({"error": "Weather prediction model not loaded"}), 500
+            return jsonify({
+                "error": "Weather prediction model or scaler not loaded. Please ensure the weather model and scaler files are available."
+            }), 500
 
         # Extract features from request
         data = request.json
-        if isinstance(data, dict):  # If `data` is a dictionary, extract "data"
+        if isinstance(data, dict):  # If data is a dictionary, extract "data"
             data = data.get("data", None)
         elif isinstance(data, list):  # If it's a list, treat it as raw input
             pass
@@ -174,5 +175,5 @@ def weather_prediction():
         return jsonify({"error": "Internal server error during weather prediction"}), 500
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # Fixing app entry point
     app.run(debug=True)
