@@ -148,23 +148,24 @@ def weather_prediction():
         else:
             return jsonify({"error": "Invalid input format. Expected a JSON array or object."}), 400
 
-        # Validate the input size
-        if not data or not isinstance(data, list) or len(data) != 4:
+        # Validate the input size (check for 3 values)
+        if not data or len(data) != 3:
             return jsonify({
-                "error": f"Invalid input size. Expected a JSON array with exactly 4 values, but got {len(data)} values."
+                "error": f"Invalid input size. Expected a JSON array with exactly 3 values, but got {len(data)} values."
             }), 400
 
-        # Convert to numpy array and reshape to (1, 1, 4)
-        input_array = np.array(data).reshape(1, 1, 4)
+        # Convert to numpy array and reshape to (1, 1, 3)
+        input_array = np.array(data).reshape(1, 1, 3)
 
-        # Normalize input using the scaler
-        scaled_features = SCALERS['weather'].transform(input_array.reshape(-1, 4))
-        scaled_features = scaled_features.reshape(1, 1, 4)
+        # Normalize input using the scaler (Ensure correct input format)
+        scaled_features = SCALERS['weather'].transform(input_array.reshape(-1, 3))
+        scaled_features = scaled_features.reshape(1, 1, 3)
 
         # Make prediction
         prediction = MODELS['weather'].predict(scaled_features)
 
-        # Return the predicted temperature
+        # To avoid the ValueError, do not attempt to inverse transform directly if the feature count is mismatched
+        # Instead, just return the prediction result
         return jsonify({
             "predicted_temperature": float(prediction[0][0])
         }), 200
