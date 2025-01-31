@@ -91,10 +91,15 @@ main {
     padding: 2rem 1rem;
 }
 
+h1{
+    text-align: center;
+}
+
 .dashboard-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    /* grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); */
     gap: 1.5rem;
+    margin-top: 30px;
 }
 
 .dashboard-item {
@@ -107,14 +112,36 @@ main {
     border: 1px solid rgba(0,0,0,0.05);
 }
 
+.Weather_bg {
+    background-image: url(pngtree-an-image-of-a-beautiful-and-clear-blue-sky-image_13346792.jpg);
+    background-position-y: -620px;
+    background-size: cover;
+}
+
+.Soil_bg {
+    background-image: url(green-plant-growing-good-soil-260nw-1740688472.webp);
+    background-position-y: center;
+    background-size: cover;
+}
+
+body {
+    background-image: url(stunning-view-showcasing-bright-blue-sky-above-lush-green-grass-rich-dark-soil-depicting-beauty-nature-farmland-348267784.webp);
+    background-size: cover;
+    background-position-y: 0px;
+}
+
 .dashboard-item:hover {
     transform: translateY(-10px);
     box-shadow: 0 15px 25px rgba(0,0,0,0.15);
 }
 
 .dashboard-item h2 {
-    color: var(--primary-color);
+    color: #014116;
     margin-bottom: 1rem;
+}
+
+.Soil_bg h2 {
+    color: rgb(83, 248, 138);
 }
 
 .dashboard-item button {
